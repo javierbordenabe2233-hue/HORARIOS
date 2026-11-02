@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Cargar grilla semanal</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#14181f;--mut:#667085;--line:#e3e6eb;--acc:#1c5bd6;--acx:#fff;--accbg:#e6eefc;--sal:#b4540a;--salbg:#fdf0e3;--ent:#0b7a4b;--entbg:#e4f6ec;--today:#fff7d6;--warn:#9a5b00;--warnbg:#fff3d6;--err:#b42318;--errbg:#fde8e6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1218;--card:#181c24;--tx:#eceff4;--mut:#98a2b3;--line:#2a303b;--acc:#7aa7ff;--acx:#0b1220;--accbg:#1c2a47;--sal:#f0a869;--salbg:#33261a;--ent:#59d19b;--entbg:#16301f;--today:#3a3416;--warn:#f5c26b;--warnbg:#3a2e12;--err:#ff9a90;--errbg:#3b1a17}}
+:root[data-theme="dark"]{--bg:#0f1218;--card:#181c24;--tx:#eceff4;--mut:#98a2b3;--line:#2a303b;--acc:#7aa7ff;--acx:#0b1220;--accbg:#1c2a47;--sal:#f0a869;--salbg:#33261a;--ent:#59d19b;--entbg:#16301f;--today:#3a3416;--warn:#f5c26b;--warnbg:#3a2e12;--err:#ff9a90;--errbg:#3b1a17}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:620px;margin:0 auto;padding:16px 14px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:20px;margin:4px 0 2px}
+h3{margin:0 0 6px;font-size:16px}
+.sub{color:var(--mut);font-size:13px;margin-bottom:14px}
+.search{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:6px 0 10px;z-index:5}
+input,textarea{width:100%;font:inherit;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--tx)}
+input:focus,textarea:focus{outline:none;border-color:var(--acc)}
+textarea{font-size:14px;padding:10px 12px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:999px;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--accbg);border-color:var(--acc);color:var(--acc)}
+.grp{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin:6px 2px 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+.card h2{margin:0;padding:12px 14px;font-size:17px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.rol{font-size:12px;font-weight:600;color:var(--acc);background:var(--accbg);padding:3px 9px;border-radius:999px}
+.day{padding:10px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:62px 1fr;gap:4px 10px}
+.day:last-child{border-bottom:0}
+.day.today{background:var(--today)}
+.d{font-weight:700;line-height:1.15}.d small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;margin-right:6px}
+.Salida{background:var(--salbg);color:var(--sal)}.Entrada{background:var(--entbg);color:var(--ent)}
+.hr{font-weight:600}
+.meta{font-size:13px;color:var(--mut);margin-top:3px}
+.meta b{color:var(--tx);font-weight:600}
+.empty{color:var(--mut);text-align:center;padding:26px 8px}
+.foot{font-size:12px;color:var(--mut);margin-top:18px;line-height:1.5}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--acc);color:var(--acx);border-color:var(--acc);font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+.up{padding:14px;margin-bottom:14px}
+.up p{margin:0 0 10px;font-size:13px;color:var(--mut)}
+.up label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+.up input[type=date],.up input[type=text]{padding:10px 12px}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:4px;text-align:left;vertical-align:middle}
+th{font-size:12px;color:var(--mut);font-weight:600;padding:6px 4px;white-space:nowrap}
+td.lb{font-size:12px;white-space:nowrap;padding:4px 8px}
+td.lb small{display:block;color:var(--mut)}
+.ci,.cf{padding:6px 6px;font-size:13px;min-width:84px;border-radius:8px;border-width:1px}
+.cf{min-width:118px}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px 12px;text-align:center;cursor:pointer;background:var(--bg);margin-bottom:4px}
+.drop b{display:block;font-size:15px}
+.drop span{font-size:13px;color:var(--mut)}
+.drop:hover,.drop.over,.drop:focus{border-color:var(--acc);background:var(--accbg);outline:none}
+.msg{font-size:13px;margin-top:10px;border-radius:10px;padding:8px 10px}
+.msg.warn{background:var(--warnbg);color:var(--warn)}
+.msg.err{background:var(--errbg);color:var(--err)}
+.msg.ok{background:var(--entbg);color:var(--ent)}
+
+textarea.json{font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;min-height:120px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Cargar grilla semanal</h1>
+  <div class="sub">Esta página lee el PDF y genera el archivo <b>grilla.json</b>. Después lo subís al repositorio de GitHub y el buscador se actualiza.</div>
+  <div class="card up">
+    <div class="drop" id="drop" tabindex="0" role="button"><b>Arrastrá el PDF acá</b><span>o tocá para elegirlo</span></div>
+    <input type="file" id="pdf" accept="application/pdf,.pdf" hidden>
+    <label for="fd">Primer día de la semana (sábado)</label>
+    <input type="date" id="fd">
+    <label for="per">Período que se muestra</label>
+    <input type="text" id="per" placeholder="Ej: 30/10 al 06/11">
+    <div class="tw"><table id="ed"></table></div>
+    <div class="msg" id="msg" hidden></div>
+    <div class="row2"><button class="btn pri" id="gen" disabled>Descargar grilla.json</button><button class="btn" id="copy" disabled>Copiar contenido</button></div>
+    <div id="res" hidden>
+      <label for="js">Contenido de grilla.json</label>
+      <textarea class="json" id="js" readonly></textarea>
+    </div>
+  </div>
+</main>
+<script>
+var $=function(id){return document.getElementById(id)};
+var WD=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function f2(n){return(n<10?"0":"")+n}
+function pd(iso){var p=String(iso).split("-");return Date.UTC(+p[0],+p[1]-1,+p[2])}
+function dayAt(start,i){var t=new Date(start+i*864e5);return{wd:WD[t.getUTCDay()],d:t.getUTCDate(),m:t.getUTCMonth()+1}}
+function fdm(ms){var t=new Date(ms);return f2(t.getUTCDate())+"/"+f2(t.getUTCMonth()+1)}
+function norm(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z ]/g," ").replace(/\s+/g," ").trim()}
+var HRX=/(\d{1,2}:\d{2})\s*(?:a|-|–)\s*(\d{1,2}:\d{2})/i;
+function fmtHr(s){var m=HRX.exec(s||"");return m?m[1]+"–"+m[2]:""}
+var PLAN=[],perDirty=false;
+function msg(cls,txt){var m=$("msg");m.className="msg "+cls;m.textContent=txt;m.hidden=!txt}
+
+// ===== Lector de PDF de la grilla (lee por posición en la página) =====
+var DIAS=["SABADO","DOMINGO","LUNES","MARTES","MIERCOLES","JUEVES","VIERNES"];
+function turnoDe(hora,etq){
+  if(hora==="07:50–15:00")return"Mañana";
+  if(hora==="14:50–22:00")return"Tarde";
+  if(hora==="10:50–18:00")return"Turno medio";
+  var n=norm(etq||"");
+  if(/MEDIO/.test(n))return"Turno medio";
+  if(/MANANA/.test(n))return"Mañana";
+  if(/TARDE/.test(n))return"Tarde";
+  return"Turno";
+}
+function parseGrilla(items){
+  var it=items.map(function(o){return{s:String(o.str).replace(/\s+/g," ").trim(),x:o.x,y:o.y,w:o.w}}).filter(function(o){return o.s});
+  if(!it.length)return{err:"El PDF no tiene texto que se pueda leer (¿es una imagen o una captura?)."};
+  function cx(o){return o.x+o.w/2}
+  function cerca(list,y,tol){var b=null,bd=1e9;list.forEach(function(o){var dd=Math.abs(o.y-y);if(dd<bd){bd=dd;b=o}});return b&&bd<=tol?b:null}
+  var tIns=it.filter(function(o){return norm(o.s)==="INSPECTORES"})[0];
+  var tSup=it.filter(function(o){return norm(o.s)==="SUPERVISORES"})[0];
+  if(!tIns||!tSup)return{err:"No encontré los títulos INSPECTORES y SUPERVISORES en el PDF."};
+  var secs=[{rol:"Inspector",t:tIns},{rol:"Supervisor",t:tSup}].sort(function(a,b){return b.t.y-a.t.y});
+  secs[0].bot=secs[1].t.y;secs[1].bot=-1e9;
+  var out={Inspector:[],Supervisor:[]},warn=[];
+  for(var si=0;si<2;si++){
+    var sc=secs[si],inSec=it.filter(function(o){return o.y<sc.t.y-2&&o.y>sc.bot});
+    var hc=[],hy=0;
+    for(var d=0;d<7;d++){
+      var h=inSec.filter(function(o){return norm(o.s)===DIAS[d]})[0];
+      if(!h)return{err:"En "+sc.rol+"es no encontré la columna "+DIAS[d]+"."};
+      hc.push(cx(h));hy=Math.max(hy,h.y);
+    }
+    var left=hc[0]-(hc[1]-hc[0])/2;
+    var body=inSec.filter(function(o){return o.y<hy-3});
+    var hrs=body.filter(function(o){return HRX.test(o.s)});
+    var mid=hrs.filter(function(o){return cx(o)<hc[0]});
+    // columna derecha del viernes: horario y, a veces, "SALIDA"/"ENTRADA" debajo
+    var rh=hrs.filter(function(o){return cx(o)>hc[6]});
+    var rl=body.filter(function(o){var n=norm(o.s);return cx(o)>hc[6]&&(n==="SALIDA"||n==="ENTRADA")});
+    var celdas=rh.map(function(o){
+      var l=null,bd=1e9;rl.forEach(function(z){var dd=o.y-z.y;if(dd>0&&dd<14&&dd<bd){bd=dd;l=z}});
+      return{y:l?(o.y+l.y)/2:o.y,fr:fmtHr(o.s),fdir:l?(norm(l.s)==="SALIDA"?"Salida":"Entrada"):""};
+    });
+    var dirs=body.filter(function(o){var n=norm(o.s);return cx(o)<hc[0]&&(n==="SALIDA"||n==="ENTRADA")});
+    var turnos=body.filter(function(o){return cx(o)<hc[0]&&!HRX.test(o.s)&&/MANANA|TARDE|MEDIO/.test(norm(o.s))});
+    var names=body.filter(function(o){var c=cx(o);return !HRX.test(o.s)&&c>left&&c<=hc[6]}).sort(function(a,b){return b.y-a.y});
+    var grp=[];
+    names.forEach(function(o){
+      var g=grp[grp.length-1];
+      if(!g||Math.abs(g.y-o.y)>5){g={y:o.y,it:[]};grp.push(g)}
+      g.it.push(o);
+    });
+    if(!grp.length)return{err:"No encontré apellidos en la sección de "+sc.rol+"es."};
+    out[sc.rol]=grp.map(function(g){
+      var cells=[[],[],[],[],[],[],[]];
+      g.it.sort(function(a,b){return a.x-b.x}).forEach(function(o){
+        var best=0,bd=1e9;
+        for(var d=0;d<7;d++){var dd=Math.abs(cx(o)-hc[d]);if(dd<bd){bd=dd;best=d}}
+        cells[best].push(o.s);
+      });
+      var m=cerca(mid,g.y,14),dr=cerca(dirs,g.y,60),tu=cerca(turnos,g.y,14),ce=cerca(celdas,g.y,14);
+      var hora=m?fmtHr(m.s):"";
+      return{rol:sc.rol,dir:dr?(norm(dr.s)==="SALIDA"?"Salida":"Entrada"):"",turno:turnoDe(hora,tu&&tu.s),hora:hora,fr:ce?ce.fr:"",fdir:ce?ce.fdir:"",
+        n:cells.map(function(c){return c.join(" ").toUpperCase()})};
+    });
+  }
+  var all=out.Inspector.concat(out.Supervisor),vac=0,sinH=0,sinD=0,sinF=0;
+  all.forEach(function(r){
+    r.n.forEach(function(x){if(!x)vac++});
+    if(!r.hora)sinH++;if(!r.dir)sinD++;if(!r.fr)sinF++;
+    if(!r.dir)r.dir="Salida";
+  });
+  if(sinD)warn.push("No pude ver si "+sinD+" fila(s) son Salida o Entrada.");
+  if(sinH)warn.push("Faltan horarios de turno en "+sinH+" fila(s).");
+  if(sinF)warn.push("Faltan horarios del viernes en "+sinF+" fila(s).");
+  if(vac)warn.push("Hay "+vac+" celdas sin apellido; revisá la tabla.");
+  return{rows:all,warn:warn,nIns:out.Inspector.length,nSup:out.Supervisor.length};
+}
+
+
+var PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function cargarScript(src){return new Promise(function(ok,ko){
+  var s=document.createElement("script");s.src=src;s.onload=ok;
+  s.onerror=function(){ko(new Error("No pude descargar el lector de PDF ("+src.split("/").pop()+"). Revisá la conexión y probá de nuevo."))};
+  document.head.appendChild(s);
+})}
+function cargarPdfjs(){
+  if(window.pdfjsLib&&window.pdfjsWorker)return Promise.resolve(window.pdfjsLib);
+  return cargarScript(PDFJS+"pdf.worker.min.js").then(function(){return cargarScript(PDFJS+"pdf.min.js")}).then(function(){
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+"pdf.worker.min.js";return window.pdfjsLib;
+  });
+}
+function fechasDelNombre(nombre){
+  var m=/(\d{1,2})[-_.\/](\d{1,2})\D+?(\d{1,2})[-_.\/](\d{1,2})/.exec(nombre||"");
+  if(!m)return null;
+  var d1=+m[1],m1=+m[2],d2=+m[3],m2=+m[4],now=new Date(),y=now.getFullYear(),best=null,bd=1e18;
+  for(var yy=y-1;yy<=y+1;yy++){var t=Date.UTC(yy,m1-1,d1),dd=Math.abs(t-now.getTime());if(dd<bd){bd=dd;best=yy}}
+  var ini=Date.UTC(best,m1-1,d1),sab=ini+864e5;
+  if(new Date(sab).getUTCDay()!==6)return null;
+  return{iso:new Date(sab).toISOString().slice(0,10),periodo:f2(d1)+"/"+f2(m1)+" al "+f2(d2)+"/"+f2(m2)};
+}
+function buildTable(){
+  var st=pd($("fd").value||"2000-01-01"),h='<thead><tr><th>Turno</th>';
+  for(var i=0;i<7;i++){var d=dayAt(st,i);h+='<th>'+d.wd.slice(0,3)+' '+f2(d.d)+'/'+f2(d.m)+'</th>'}
+  h+='<th>Horario viernes</th></tr></thead><tbody>';
+  PLAN.forEach(function(r,ri){
+    h+='<tr><td class="lb">'+(r.rol==="Inspector"?"Insp.":"Sup.")+' · '+esc(r.dir)+'<small>'+esc(r.turno)+' · '+esc(r.hora)+(r.fdir&&r.fdir!==r.dir?' · vie: '+esc(r.fdir):'')+'</small></td>';
+    for(var i=0;i<7;i++)h+='<td><input class="ci" data-r="'+ri+'" data-c="'+i+'" value="" autocapitalize="characters"></td>';
+    h+='<td><input class="cf" data-r="'+ri+'" value="" placeholder="07:50–10:30"></td></tr>';
+  });
+  $("ed").innerHTML=h+'</tbody>';
+  document.querySelectorAll(".ci").forEach(function(el){el.value=PLAN[el.dataset.r].n[el.dataset.c]||""});
+  document.querySelectorAll(".cf").forEach(function(el){el.value=PLAN[el.dataset.r].fr||""});
+}
+function autoPeriodo(){
+  if(perDirty)return;
+  var st=pd($("fd").value);if(isNaN(st))return;
+  $("per").value=fdm(st-864e5)+" al "+fdm(st+6*864e5);
+}
+$("fd").onchange=function(){
+  autoPeriodo();
+  var st=pd($("fd").value),ths=document.querySelectorAll("#ed thead th");
+  for(var i=0;i<7;i++){var d=dayAt(st,i);if(ths[i+1])ths[i+1].textContent=d.wd.slice(0,3)+" "+f2(d.d)+"/"+f2(d.m)}
+};
+$("per").oninput=function(){perDirty=true};
+
+async function leerPdf(file){
+  if(!file)return;
+  if(!/\.pdf$/i.test(file.name||"")&&file.type!=="application/pdf"){msg("err","Tiene que ser un archivo PDF.");return}
+  msg("warn","Leyendo el PDF…");
+  try{
+    var lib=await cargarPdfjs();
+    var pdf=await lib.getDocument({data:await file.arrayBuffer()}).promise;
+    var r=null,ult=null;
+    for(var p=1;p<=pdf.numPages&&!(r&&!r.err);p++){
+      var tc=await (await pdf.getPage(p)).getTextContent();
+      r=parseGrilla(tc.items.map(function(i){return{str:i.str,x:i.transform[4],y:i.transform[5],w:i.width}}));
+      if(r.err)ult=r.err;
+    }
+    if(!r||r.err){msg("err",(r&&r.err)||ult||"No pude leer la grilla del PDF.");return}
+    PLAN=r.rows;perDirty=false;
+    var w=r.warn.slice(),fe=fechasDelNombre(file.name);
+    if(fe){$("fd").value=fe.iso;$("per").value=fe.periodo;perDirty=true}
+    else w.push("No pude sacar las fechas del nombre del archivo; completá el primer día (sábado) y el período.");
+    buildTable();
+    $("gen").disabled=false;$("copy").disabled=false;
+    msg(w.length?"warn":"ok","Leí la grilla"+(fe?" del "+fe.periodo:"")+": "+r.nIns+" filas de inspectores y "+r.nSup+" de supervisores. "+(w.length?w.join(" ")+" ":"")+"Revisá la tabla y descargá el archivo.");
+  }catch(err){
+    msg("err","No pude leer el PDF: "+(err&&err.message?err.message:"error desconocido"));
+  }
+}
+function armarJson(){
+  var iso=$("fd").value;
+  if(!iso||isNaN(pd(iso))){msg("err","Elegí el primer día de la semana (sábado).");return null}
+  if(new Date(pd(iso)).getUTCDay()!==6){msg("err","El primer día tiene que ser un sábado.");return null}
+  var rows=PLAN.map(function(r,ri){var ef=document.querySelector('.cf[data-r="'+ri+'"]');return{rol:r.rol,dir:r.dir,turno:r.turno,hora:r.hora,fr:fmtHr(ef&&ef.value)||r.fr,fdir:r.fdir||"",n:[0,1,2,3,4,5,6].map(function(c){var el=document.querySelector('.ci[data-r="'+ri+'"][data-c="'+c+'"]');return(el.value||"").trim().toUpperCase()})}});
+  var total=0;rows.forEach(function(r){r.n.forEach(function(x){if(x)total++})});
+  if(!total){msg("err","La tabla está vacía.");return null}
+  var per=($("per").value||"").trim()||(fdm(pd(iso)-864e5)+" al "+fdm(pd(iso)+6*864e5));
+  var txt=JSON.stringify({desde:iso,periodo:per,rows:rows});
+  $("js").value=txt;$("res").hidden=false;
+  return txt;
+}
+$("gen").onclick=function(){
+  var txt=armarJson();if(!txt)return;
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
+  a.download="grilla.json";document.body.appendChild(a);a.click();a.remove();
+  msg("ok","Listo: se descargó grilla.json. Subilo al repositorio de GitHub (reemplaza al anterior). Si no se descargó, usá “Copiar contenido”.");
+};
+$("copy").onclick=function(){
+  var txt=armarJson();if(!txt)return;
+  var ok=function(){msg("ok","Copiado. En GitHub abrí grilla.json, tocá el lápiz (editar), borrá todo, pegá y guardá (Commit changes).")};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok,function(){$("js").select();msg("warn","No pude copiar solo. Quedó seleccionado el texto de abajo: copialo a mano.")});
+  else{$("js").select();msg("warn","Copiá a mano el texto de abajo.")}
+};
+$("drop").onclick=function(){$("pdf").click()};
+$("drop").onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();$("pdf").click()}};
+$("pdf").onchange=function(){var f=this.files&&this.files[0];this.value="";leerPdf(f)};
+["dragover","drop"].forEach(function(ev){
+  window.addEventListener(ev,function(e){
+    var ty=e.dataTransfer&&e.dataTransfer.types;
+    if(!ty||[].indexOf.call(ty,"Files")<0)return;
+    e.preventDefault();
+    if(ev==="dragover"){$("drop").classList.add("over");return}
+    $("drop").classList.remove("over");
+    leerPdf(e.dataTransfer.files&&e.dataTransfer.files[0]);
+  });
+});
+window.addEventListener("dragleave",function(e){if(!e.relatedTarget)$("drop").classList.remove("over")});
+</script>
+</body>
+</html>
